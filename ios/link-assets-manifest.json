@@ -1,0 +1,17 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "app/assets/fonts/Mont-Heavy.otf",
+      "sha1": "0eff9921ee8d68c8acfba7dcf6ce173e077937cc"
+    },
+    {
+      "path": "app/assets/fonts/Mont-Regular.otf",
+      "sha1": "7cb2bad470c0b027cd6fd1fab7393155df505059"
+    },
+    {
+      "path": "app/assets/fonts/Mont-SemiBold.otf",
+      "sha1": "b39fcdb36d60aac09c729eccf9b8bab534fbbd56"
+    }
+  ]
+}
