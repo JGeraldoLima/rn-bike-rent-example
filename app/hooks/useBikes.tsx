@@ -1,20 +1,25 @@
-import { useQuery } from 'react-query';
-import axios from 'axios';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAvailableBikes } from '../store/bikesSlice';
+import { RootState, AppDispatch } from '../store';
 
-const headers = {
-  'Content-Type': 'application/json',
-  Authorization: '2591afa4-7526-4541-b720-c0ed5a623e35',
+const useBikes = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const bikes = useSelector((state: RootState) => state.bikes.availableBikes);
+  const loading = useSelector((state: RootState) => state.bikes.loading);
+  const error = useSelector((state: RootState) => state.bikes.error);
+
+  useEffect(() => {
+    dispatch(getAvailableBikes());
+  }, [dispatch]);
+
+  console.log('useBikes hook: Current state:', { 
+    bikesCount: bikes.length, 
+    loading, 
+    error 
+  });
+
+  return { data: bikes, isLoading: loading, error };
 };
-
-const fetchBikes = async () => {
-  const { data } = await axios.get(
-    'https://trio-bike-rent-api.herokuapp.com/api/bikes/', // TODO: get URL from env var
-    { headers }
-  );
-
-  return data;
-};
-
-const useBikes = () => useQuery('bikes', fetchBikes);
 
 export default useBikes;
