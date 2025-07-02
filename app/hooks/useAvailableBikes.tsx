@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAvailableBikesThunk } from '../stores/availableBikes/slice';
-import { AppDispatch } from '../store';
+import { AppDispatch } from '../stores/store';
 import { AvailableBikesState } from '../stores/availableBikes/types';
 
 const useAvailableBikes = () => {

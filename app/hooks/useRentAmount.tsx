@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRentAmountThunk, clearRentAmount } from '../stores/rentAmount/slice';
-import { AppDispatch } from '../store';
+import { AppDispatch } from '../stores/store';
 import { RentAmountState } from '../stores/rentAmount/types';
 
 const useRentAmount = (bikeId: number | null, userId: number | null, startDate: string | null, endDate: string | null) => {

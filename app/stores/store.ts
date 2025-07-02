@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
-import rentAmountReducer from './stores/rentAmount/slice';
-import bookingReducer from './stores/booking/slice';
-import returnBikeReducer from './stores/returnBike/slice';
-import availableBikesReducer from './stores/availableBikes/slice';
+import rentAmountReducer from './rentAmount/slice';
+import bookingReducer from './booking/slice';
+import returnBikeReducer from './returnBike/slice';
+import availableBikesReducer from './availableBikes/slice';
 
 export const store = configureStore({
   reducer: {

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { returnBikeThunk, clearReturnBike } from '../stores/returnBike/slice';
-import { AppDispatch } from '../store';
+import { AppDispatch } from '../stores/store';
 import { ReturnBikeState } from '../stores/returnBike/types';
 
 const useReturnBike = (bookingId: number | null, trigger: boolean) => {

@@ -3,7 +3,7 @@ import { StatusBar } from 'react-native';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { store } from './stores/store';
 
 import { Main } from './navigation';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

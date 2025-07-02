@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { bookBikeThunk, clearBooking } from '../stores/booking/slice';
-import { AppDispatch } from '../store';
+import { AppDispatch } from '../stores/store';
 import { BookingState } from '../stores/booking/types';
 
 const useBooking = (bikeId: number | null, userId: number | null, startDate: string | null, endDate: string | null, trigger: boolean) => {
