@@ -3,23 +3,23 @@ import { fetchAvailableBikes, calculateRentAmount, bookBike } from '../services/
 import { Bike } from '../models/Bike';
 
 interface BikesState {
-  //bikes: Bike[];
+  bikes: Bike[];
   availableBikes: Bike[];
+  rentAmount: number | null;
+  fee: number | null;
+  totalAmount: number | null;
   loading: boolean;
   error: string | null;
-  rentAmount: number | null;
-  bookingLoading: boolean;
-  bookingError: string | null;
 }
 
 const initialState: BikesState = {
-  //bikes: [],
+  bikes: [],
   availableBikes: [],
+  rentAmount: null,
+  fee: null,
+  totalAmount: null,
   loading: false,
   error: null,
-  rentAmount: null,
-  bookingLoading: false,
-  bookingError: null,
 };
 
 //export const getAllBikes = createAsyncThunk('bikes/getBikes', async () => {
@@ -30,25 +30,21 @@ const initialState: BikesState = {
 //});
 
 export const getAvailableBikes = createAsyncThunk('bikes/getAvailableBikes', async () => {
-  console.log('Redux: Starting getAvailableBikes thunk');
   const response = await fetchAvailableBikes();
-  console.log('Redux: getAvailableBikes successful, data:', response.data);
   return response.data as Bike[];
 });
 
 export const calculateRent = createAsyncThunk(
   'bikes/calculateRent',
-  async ({ bikeId, userId, startDate, endDate }: { bikeId: string; userId: number; startDate: string; endDate: string }) => {
-    console.log('Redux: Starting calculateRent thunk');
+  async ({ bikeId, userId, startDate, endDate }: { bikeId: number; userId: number; startDate: string; endDate: string }) => {
     const response = await calculateRentAmount(bikeId, userId, startDate, endDate);
-    console.log('Redux: calculateRent successful, amount:', response.data);
     return response.data;
   }
 );
 
 export const rentBike = createAsyncThunk(
   'bikes/rentBike',
-  async ({ bikeId, userId, startDate, endDate }: { bikeId: string; userId: number; startDate: string; endDate: string }, { dispatch }) => {
+  async ({ bikeId, userId, startDate, endDate }: { bikeId: number; userId: number; startDate: string; endDate: string }, { dispatch }) => {
     console.log('Redux: Starting rentBike thunk');
     const response = await bookBike(bikeId, userId, startDate, endDate);
     console.log('Redux: rentBike successful, response:', response.data);
@@ -82,8 +78,11 @@ const bikesSlice = createSlice({
     clearRentAmount: (state) => {
       state.rentAmount = null;
     },
-    clearBookingError: (state) => {
-      state.bookingError = null;
+    clearRentFee: (state) => {
+      state.fee = null;
+    },
+    clearRentTotalAmount: (state) => {
+      state.totalAmount = null;
     },
   },
   extraReducers: (builder) => {
@@ -116,40 +115,42 @@ const bikesSlice = createSlice({
         state.availableBikes = action.payload;
       })
       .addCase(getAvailableBikes.rejected, (state, action) => {
-        console.error('Redux: getAvailableBikes rejected:', action.error.message);
+        console.error('Redux: getAvailableBikes rejected:', action.error);
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch available bikes';
-      })
+      })      
       // calculateRent
       .addCase(calculateRent.pending, (state) => {
         console.log('Redux: calculateRent pending');
-        state.bookingLoading = true;
-        state.bookingError = null;
+        state.loading = true;
+        state.error = null;
       })
       .addCase(calculateRent.fulfilled, (state, action) => {
         console.log('Redux: calculateRent fulfilled, amount:', action.payload);
-        state.bookingLoading = false;
-        state.rentAmount = action.payload;
+        state.loading = false;
+        state.rentAmount = action.payload.rentAmount;
+        state.fee = action.payload.fee;
+        state.totalAmount = action.payload.totalAmount;
       })
       .addCase(calculateRent.rejected, (state, action) => {
-        console.error('Redux: calculateRent rejected:', action.error.message);
-        state.bookingLoading = false;
-        state.bookingError = action.error.message || 'Failed to calculate rent amount';
+        console.error('Redux: calculateRent rejected:', action.error);
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch rent amount';
       })
       // rentBike
       .addCase(rentBike.pending, (state) => {
         console.log('Redux: rentBike pending');
-        state.bookingLoading = true;
-        state.bookingError = null;
+        state.loading = true;
+        state.error = null;
       })
       .addCase(rentBike.fulfilled, (state, action) => {
         console.log('Redux: rentBike fulfilled, response:', action.payload);
-        state.bookingLoading = false;
+        state.loading = false;
       })
       .addCase(rentBike.rejected, (state, action) => {
-        console.error('Redux: rentBike rejected:', action.error.message);
-        state.bookingLoading = false;
-        state.bookingError = action.error.message || 'Failed to rent bike';
+        console.error('Redux: rentBike rejected:', action.error);
+        state.loading = false;
+        state.error = action.error.message || 'Failed to rent bike';
       })
       // returnBike
       //.addCase(returnRentedBike.pending, (state) => {
@@ -169,5 +170,5 @@ const bikesSlice = createSlice({
   },
 });
 
-export const { clearRentAmount, clearBookingError } = bikesSlice.actions;
+export const { clearRentAmount, clearBookingError, clearRentCalculation } = bikesSlice.actions;
 export default bikesSlice.reducer; 

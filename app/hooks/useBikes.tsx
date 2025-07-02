@@ -13,13 +13,17 @@ const useBikes = () => {
     dispatch(getAvailableBikes());
   }, [dispatch]);
 
+  const refresh = () => {
+    dispatch(getAvailableBikes());
+  };
+
   console.log('useBikes hook: Current state:', { 
     bikesCount: bikes.length, 
     loading, 
     error 
   });
 
-  return { data: bikes, isLoading: loading, error };
+  return { data: bikes, isLoading: loading, error, refresh };
 };
 
 export default useBikes;
