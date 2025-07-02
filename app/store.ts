@@ -1,9 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
-import bikesReducer from './store/bikesSlice';
+import rentAmountReducer from './stores/rentAmount/slice';
+import bookingReducer from './stores/booking/slice';
+import returnBikeReducer from './stores/returnBike/slice';
+import availableBikesReducer from './stores/availableBikes/slice';
 
 export const store = configureStore({
   reducer: {
-    bikes: bikesReducer,
+    rentAmount: rentAmountReducer,
+    booking: bookingReducer,
+    returnBike: returnBikeReducer,
+    availableBikes: availableBikesReducer,
   },
 });
 

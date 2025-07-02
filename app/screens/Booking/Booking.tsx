@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal, ToastAndroid, Platform, Alert } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { Bike } from '@app/models/Bike';
 import { BackIcon, CalendarIcon } from '@app/assets';
 import { sharedStyles } from '../../components/sharedStyles';
 import { Calendar } from 'react-native-calendars';
-import { useDispatch, useSelector } from 'react-redux';
-import { calculateRent, clearRentAmount } from '../../store/bikesSlice';
-import { RootState } from '../../store';
+import useRentAmount from '../../hooks/useRentAmount';
+import useBooking from '../../hooks/useBooking';
 
 interface BookingScreenParams {
   bike: Bike;
@@ -26,6 +25,10 @@ const Booking: React.FC = () => {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [startDate, setStartDate] = useState<string | undefined>(undefined);
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
+  const [confirmedStartDate, setConfirmedStartDate] = useState<string | undefined>(undefined);
+  const [confirmedEndDate, setConfirmedEndDate] = useState<string | undefined>(undefined);
+  const [bookingTrigger, setBookingTrigger] = useState(false);
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -144,9 +147,6 @@ const Booking: React.FC = () => {
     }
   };
 
-  // Placeholder values for subtotal, service fee, and total
-  const days = startDate && endDate ? (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 3600 * 24) + 1 : 3;
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const month = date.toLocaleString('en-US', { month: 'short' });
@@ -154,21 +154,67 @@ const Booking: React.FC = () => {
     return `${month}/${day}`;
   };
 
-  const onConfirmDates = () => {
-    if (startDate && endDate) {
-      //passing userId == 0 since we are using the fake user id from the env file
-      dispatch(calculateRent({ bikeId: bike.id, userId: 0, startDate, endDate }));
-    } else {
-      dispatch(clearRentAmount());
+  // Use hooks for rent amount and booking
+  const userId = 0; // using fake user id from env or hardcoded for now
+  const {
+    rentAmount,
+    rentAmountLoading,
+    rentAmountError,
+    fee,
+    totalAmount,
+  } = useRentAmount(
+    bike.id ?? null,
+    userId,
+    confirmedStartDate ?? null,
+    confirmedEndDate ?? null
+  );
+
+  const {
+    booking,
+    bookingLoading,
+    bookingError,
+  } = useBooking(
+    bike.id ?? null,
+    userId,
+    confirmedStartDate ?? null,
+    confirmedEndDate ?? null,
+    bookingTrigger
+  );
+
+  // Show confirmation modal on successful booking
+  useEffect(() => {
+    if (booking && !bookingLoading && !bookingError) {
+      setConfirmationVisible(true);
+      setBookingTrigger(false); // reset trigger
     }
+  }, [booking, bookingLoading, bookingError]);
+
+  // Show toast on error
+  useEffect(() => {
+    if (rentAmountError) {
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(rentAmountError, ToastAndroid.LONG);
+      } else {
+        Alert.alert('Error', rentAmountError);
+      }
+    }
+    if (bookingError) {
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(bookingError, ToastAndroid.LONG);
+      } else {
+        Alert.alert('Error', bookingError);
+      }
+    }
+  }, [rentAmountError, bookingError]);
+
+  const handleAddToBooking = () => {
+    setBookingTrigger(true);
   };
 
-  const dispatch = useDispatch();
-  const rentAmount = useSelector((state: RootState) => state.bikes.rentAmount);
-  const fee = useSelector((state: RootState) => state.bikes.fee);
-  const totalAmount = useSelector((state: RootState) => state.bikes.totalAmount);
-  const loading = useSelector((state: RootState) => state.bikes.loading);
-  const error = useSelector((state: RootState) => state.bikes.error);
+  const handleGoHome = () => {
+    setConfirmationVisible(false);
+    navigation.goBack();
+  };
 
   return (
     <View style={styles.container}>
@@ -208,7 +254,7 @@ const Booking: React.FC = () => {
             <Text style={styles.overviewLabel}>Subtotal</Text>
             <Text style={styles.overviewValue}>{rentAmount !== null ? rentAmount.toFixed(2) : '-'} €</Text>
           </View>
-          {error && <Text style={{ color: 'red' }}>{error}</Text>}
+          {rentAmountError && <Text style={{ color: 'red' }}>{rentAmountError}</Text>}
           <View style={styles.overviewRow}>
             <Text style={styles.overviewLabel}>Service Free</Text>
             <Text style={styles.overviewValue}>{fee !== null ? fee.toFixed(2) : '-'} €</Text>
@@ -219,7 +265,7 @@ const Booking: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddToBooking}>
         <Text style={styles.addButtonText}>Add to booking</Text>
       </TouchableOpacity>
       <Modal
@@ -254,11 +300,33 @@ const Booking: React.FC = () => {
               }}
               style={{ borderRadius: 20 }}
             />
-            <TouchableOpacity style={styles.selectButton} onPress={() => {
-                onConfirmDates();
-                setCalendarVisible(false)}
-              }>
+            <TouchableOpacity
+              style={styles.selectButton}
+              onPress={() => {
+                setConfirmedStartDate(startDate);
+                setConfirmedEndDate(endDate);
+                setCalendarVisible(false);
+              }}
+            >
               <Text style={styles.selectButtonText}>Select</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={confirmationVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleGoHome}>
+        <View style={styles.confirmationOverlay}>
+          <View style={styles.confirmationModal}>
+            <Text style={styles.confirmationTitle}>Thank you!</Text>
+            <Text style={styles.confirmationSubtitle}>Your bike is booked.</Text>
+            <Image source={{ uri: bike.imageUrls[0] }} style={styles.confirmationImage} />
+            <Text style={styles.confirmationBikeName}>{bike.name}</Text>
+            <View style={styles.confirmationBadge}><Text style={styles.confirmationBadgeText}>{bike.type}</Text></View>
+            <TouchableOpacity style={styles.confirmationButton} onPress={handleGoHome}>
+              <Text style={styles.confirmationButtonText}>Go to Home Page</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -300,6 +368,16 @@ const styles = StyleSheet.create({
   modalHandle: { alignSelf: 'center', width: 60, height: 6, borderRadius: 3, backgroundColor: '#fff', marginBottom: 16 },
   selectButton: { backgroundColor: '#FFD775', borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 20, marginBottom: 10 },
   selectButtonText: { color: '#222', fontWeight: 'bold', fontSize: 18 },
+  confirmationOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' },
+  confirmationModal: { backgroundColor: '#fff', borderRadius: 20, padding: 24, alignItems: 'center', width: '90%' },
+  confirmationTitle: { fontSize: 24, fontWeight: 'bold', color: '#222', marginBottom: 8 },
+  confirmationSubtitle: { fontSize: 16, color: '#222', marginBottom: 16 },
+  confirmationImage: { width: 120, height: 120, resizeMode: 'contain', marginBottom: 16 },
+  confirmationBikeName: { fontSize: 18, fontWeight: 'bold', color: '#222', marginBottom: 8 },
+  confirmationBadge: { backgroundColor: '#FFE082', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 24 },
+  confirmationBadgeText: { color: '#222', fontWeight: '600', fontSize: 14 },
+  confirmationButton: { backgroundColor: '#1F49D1', borderRadius: 16, paddingVertical: 16, paddingHorizontal: 32, alignItems: 'center', marginTop: 8 },
+  confirmationButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
 });
 
 export default Booking; 

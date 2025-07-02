@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActivityIndicator, Platform, View, BackHandler } from 'react-native';
 import { useRoute, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BottomSheetModal as GorhomBottomSheetModal } from '@gorhom/bottom-sheet';
-import { useBikes } from '@app/hooks';
+import { useAvailableBikes } from '@app/hooks';
 import {
   BikeCard,
   BottomSheetModal,
@@ -20,7 +20,7 @@ import styles from './styles';
 const snapPoints = Platform.OS === 'ios' ? ['88%'] : ['92%'];
 
 const Bikes: FC = () => {
-  const { data, isLoading, refresh } = useBikes();
+  const { data, isLoading, refresh } = useAvailableBikes();
 
   const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
 
