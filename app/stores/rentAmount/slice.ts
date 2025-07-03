@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { calculateRentAmount } from '../../services/bikeApi';
-import { RentAmountState } from './types';
+import { RentAmountState, ApiError } from '../';
 
 const initialState: RentAmountState = {
   rentAmount: null,
@@ -12,9 +12,21 @@ const initialState: RentAmountState = {
 
 export const fetchRentAmountThunk = createAsyncThunk(
   'rentAmount/fetchRentAmount',
-  async ({ bikeId, userId, startDate, endDate }: { bikeId: number; userId: number; startDate: string; endDate: string }) => {
-    const response = await calculateRentAmount(bikeId, userId, startDate, endDate);
-    return response.data;
+  async ({ bikeId, userId, startDate, endDate }: { bikeId: number; userId: number; startDate: string; endDate: string }, { rejectWithValue }) => {
+    try {
+      const response = await calculateRentAmount(bikeId, userId, startDate, endDate);
+      return response.data;
+    } catch (error: any) {
+      // Extract error details from the response
+      if (error.response?.data) {
+        return rejectWithValue(error.response.data);
+      }
+      // Fallback for network errors or other issues
+      return rejectWithValue({
+        errorType: 'NetworkError',
+        message: error.message || 'Failed to fetch rent amount'
+      });
+    }
   }
 );
 
@@ -41,10 +53,19 @@ const rentAmountSlice = createSlice({
         state.rentAmount = action.payload.rentAmount;
         state.fee = action.payload.fee;
         state.totalAmount = action.payload.totalAmount;
+        state.rentAmountError = null;
       })
       .addCase(fetchRentAmountThunk.rejected, (state, action) => {
         state.rentAmountLoading = false;
-        state.rentAmountError = action.error.message || 'Failed to fetch rent amount';
+        // Use the rejected value if available, otherwise create a fallback error
+        if (action.payload) {
+          state.rentAmountError = action.payload as ApiError;
+        } else {
+          state.rentAmountError = {
+            errorType: 'UnknownError',
+            message: action.error.message || 'Failed to fetch rent amount'
+          };
+        }
       });
   },
 });

@@ -8,6 +8,7 @@ import {useRentAmount} from '@app/hooks';
 import {useBooking}  from '@app/hooks';
 import { CalendarModal } from '@app/components';
 import { styles, BOOKING_COLORS, BOOKING_RADIUS } from './styles';
+import { ApiError } from '@app/stores';
 
 interface BookingScreenParams {
   bike: Bike;
@@ -31,10 +32,16 @@ const Booking: React.FC = () => {
   const [bookingTrigger, setBookingTrigger] = useState(false);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
 
   // Handle date selection
   const onDayPress = (day: any) => {
+    // Clear confirmed dates and rent amount data when user starts selecting new dates
+    if (areDatesConfirmed()) {
+      setConfirmedStartDate(undefined);
+      setConfirmedEndDate(undefined);
+      clearRentAmountData(); // Clear any previous rent amount data and errors
+    }
+    
     if (!startDate || (startDate && endDate)) {
       setStartDate(day.dateString);
       setEndDate(undefined);
@@ -55,6 +62,11 @@ const Booking: React.FC = () => {
     return `${month}/${day}`;
   };
 
+  // Helper function to check if dates are confirmed
+  const areDatesConfirmed = () => {
+    return !!(confirmedStartDate && confirmedEndDate);
+  };
+
   // Use hooks for rent amount and booking
   const userId = 0; // using fake user id from env or hardcoded for now
   const {
@@ -63,6 +75,9 @@ const Booking: React.FC = () => {
     rentAmountError,
     fee,
     totalAmount,
+    getErrorMessage: getRentAmountErrorMessage,
+    getErrorType: getRentAmountErrorType,
+    clearRentAmountData,
   } = useRentAmount(
     bike.id ?? null,
     userId,
@@ -92,21 +107,36 @@ const Booking: React.FC = () => {
 
   // Show toast on error
   useEffect(() => {
-    if (rentAmountError) {
-      if (Platform.OS === 'android') {
-        ToastAndroid.show(rentAmountError, ToastAndroid.LONG);
-      } else {
-        Alert.alert('Error', rentAmountError);
+    if (rentAmountError && areDatesConfirmed()) {
+      // Log detailed error information for debugging
+      console.log('Rent Amount Error Details:', rentAmountError);
+      console.log('Error Type:', getRentAmountErrorType());
+      console.log('Error Message:', getRentAmountErrorMessage());
+      
+      const errorMessage = getRentAmountErrorMessage();
+      if (errorMessage) {
+        if (Platform.OS === 'android') {
+          ToastAndroid.show(errorMessage, ToastAndroid.LONG);
+        } else {
+          Alert.alert('Error', errorMessage);
+        }
       }
     }
     if (bookingError) {
+      // Log detailed error information for debugging
+      console.log('Booking Error Details:', bookingError);
+      
+      const errorMessage = typeof bookingError === 'string' 
+        ? bookingError 
+        : (bookingError as ApiError).message;
+      
       if (Platform.OS === 'android') {
-        ToastAndroid.show(bookingError, ToastAndroid.LONG);
+        ToastAndroid.show(errorMessage, ToastAndroid.LONG);
       } else {
-        Alert.alert('Error', bookingError);
+        Alert.alert('Error', errorMessage);
       }
     }
-  }, [rentAmountError, bookingError]);
+  }, [rentAmountError, bookingError, getRentAmountErrorMessage, getRentAmountErrorType, areDatesConfirmed]);
 
   const handleAddToBooking = () => {
     setBookingTrigger(true);
@@ -140,7 +170,13 @@ const Booking: React.FC = () => {
           </View>
         </View>
         <Text style={styles.sectionTitle}>Select date and time</Text>
-        <TouchableOpacity style={styles.datePicker} onPress={() => setCalendarVisible(true)}>
+        <TouchableOpacity 
+          style={[
+            styles.datePicker, 
+            startDate && endDate && !areDatesConfirmed() && styles.datePickerUnconfirmed
+          ]} 
+          onPress={() => setCalendarVisible(true)}
+        >
           <Image source={CalendarIcon} style={styles.calendarIcon} />
           <Text style={styles.datePickerText}>
             {startDate && endDate

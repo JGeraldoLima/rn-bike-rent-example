@@ -1,46 +1,132 @@
-import reducer, { fetchRentAmountThunk, clearRentAmount } from './slice';
-import { RentAmountState } from './types';
+import { configureStore } from '@reduxjs/toolkit';
+import rentAmountReducer, { fetchRentAmountThunk, clearRentAmount } from './slice';
+import { RentAmountState, ApiError } from '../';
 
-const initialState: RentAmountState = {
-  rentAmount: null,
-  rentAmountLoading: false,
-  rentAmountError: null,
-  fee: null,
-  totalAmount: null,
-};
+// Mock the API service
+jest.mock('../../services/bikeApi', () => ({
+  calculateRentAmount: jest.fn(),
+}));
+
+const { calculateRentAmount } = require('../../services/bikeApi');
 
 describe('rentAmount slice', () => {
-  it('should handle initial state', () => {
-    expect(reducer(undefined, { type: '' })).toEqual(initialState);
+  let store: ReturnType<typeof setupStore>;
+
+  const setupStore = () => {
+    return configureStore({
+      reducer: {
+        rentAmount: rentAmountReducer,
+      },
+    });
+  };
+
+  beforeEach(() => {
+    store = setupStore();
+    jest.clearAllMocks();
   });
 
-  it('should handle fetchRentAmountThunk.pending', () => {
-    const action = { type: fetchRentAmountThunk.pending.type };
-    const state = reducer(initialState, action);
-    expect(state.rentAmountLoading).toBe(true);
-    expect(state.rentAmountError).toBeNull();
+  describe('fetchRentAmountThunk', () => {
+    it('should handle successful API response', async () => {
+      const mockResponse = {
+        data: {
+          rentAmount: 50.0,
+          fee: 5.0,
+          totalAmount: 55.0,
+        },
+      };
+
+      (calculateRentAmount as jest.Mock).mockResolvedValue(mockResponse);
+
+      await store.dispatch(
+        fetchRentAmountThunk({
+          bikeId: 1,
+          userId: 1,
+          startDate: '2024-01-01',
+          endDate: '2024-01-02',
+        })
+      );
+
+      const state = store.getState().rentAmount as RentAmountState;
+      expect(state.rentAmount).toBe(50.0);
+      expect(state.fee).toBe(5.0);
+      expect(state.totalAmount).toBe(55.0);
+      expect(state.rentAmountLoading).toBe(false);
+      expect(state.rentAmountError).toBe(null);
+    });
+
+    it('should handle API error with detailed error response', async () => {
+      const mockError = {
+        response: {
+          data: {
+            errorType: 'UnavailableBikeError',
+            message: 'Unavailable bike.',
+          },
+        },
+      };
+
+      (calculateRentAmount as jest.Mock).mockRejectedValue(mockError);
+
+      await store.dispatch(
+        fetchRentAmountThunk({
+          bikeId: 1,
+          userId: 1,
+          startDate: '2024-01-01',
+          endDate: '2024-01-02',
+        })
+      );
+
+      const state = store.getState().rentAmount as RentAmountState;
+      expect(state.rentAmountLoading).toBe(false);
+      expect(state.rentAmountError).toEqual({
+        errorType: 'UnavailableBikeError',
+        message: 'Unavailable bike.',
+      } as ApiError);
+    });
+
+    it('should handle network errors with fallback error', async () => {
+      const mockError = new Error('Network error');
+
+      (calculateRentAmount as jest.Mock).mockRejectedValue(mockError);
+
+      await store.dispatch(
+        fetchRentAmountThunk({
+          bikeId: 1,
+          userId: 1,
+          startDate: '2024-01-01',
+          endDate: '2024-01-02',
+        })
+      );
+
+      const state = store.getState().rentAmount as RentAmountState;
+      expect(state.rentAmountLoading).toBe(false);
+      expect(state.rentAmountError).toEqual({
+        errorType: 'NetworkError',
+        message: 'Network error',
+      } as ApiError);
+    });
   });
 
-  it('should handle fetchRentAmountThunk.fulfilled', () => {
-    const payload = { rentAmount: 10, fee: 2, totalAmount: 12 };
-    const action = { type: fetchRentAmountThunk.fulfilled.type, payload };
-    const state = reducer(initialState, action);
-    expect(state.rentAmountLoading).toBe(false);
-    expect(state.rentAmount).toBe(10);
-    expect(state.fee).toBe(2);
-    expect(state.totalAmount).toBe(12);
-  });
+  describe('clearRentAmount', () => {
+    it('should clear all rent amount data', () => {
+      // First set some data
+      store.dispatch(
+        fetchRentAmountThunk({
+          bikeId: 1,
+          userId: 1,
+          startDate: '2024-01-01',
+          endDate: '2024-01-02',
+        })
+      );
 
-  it('should handle fetchRentAmountThunk.rejected', () => {
-    const action = { type: fetchRentAmountThunk.rejected.type, error: { message: 'Error' } };
-    const state = reducer(initialState, action);
-    expect(state.rentAmountLoading).toBe(false);
-    expect(state.rentAmountError).toBe('Error');
-  });
+      // Then clear it
+      store.dispatch(clearRentAmount());
 
-  it('should handle clearRentAmount', () => {
-    const modifiedState = { ...initialState, rentAmount: 5, fee: 1, totalAmount: 6, rentAmountError: 'err', rentAmountLoading: true };
-    const state = reducer(modifiedState, clearRentAmount());
-    expect(state).toEqual(initialState);
+      const state = store.getState().rentAmount as RentAmountState;
+      expect(state.rentAmount).toBe(null);
+      expect(state.fee).toBe(null);
+      expect(state.totalAmount).toBe(null);
+      expect(state.rentAmountError).toBe(null);
+      expect(state.rentAmountLoading).toBe(false);
+    });
   });
 }); 

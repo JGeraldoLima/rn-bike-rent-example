@@ -57,6 +57,7 @@ export const styles = StyleSheet.create({
   bikeRateUnit: { fontSize: 18, color: BOOKING_COLORS.bikeRate, marginTop: 4, fontFamily: 'Mont'},
   sectionTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 20, marginBottom: 10, color: BOOKING_COLORS.sectionTitle, fontFamily: 'Mont' },
   datePicker: { backgroundColor: BOOKING_COLORS.background, borderRadius: 30, padding: 16, flexDirection: 'row', alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: BOOKING_COLORS.cardBorder },
+  datePickerUnconfirmed: { borderColor: '#FFD775', borderWidth: 2 },
   calendarIcon: { width: 24, height: 24, marginRight: 10, tintColor: BOOKING_COLORS.datePickerIcon },
   datePickerText: { fontSize: 16, color: BOOKING_COLORS.datePickerText, fontFamily: 'Mont' },
   overviewDivider: { height: 1, backgroundColor: BOOKING_COLORS.overviewDivider, marginBottom: 10 },

@@ -20,7 +20,35 @@ const useRentAmount = (bikeId: number | null, userId: number | null, startDate: 
     }
   }, [bikeId, userId, startDate, endDate, dispatch]);
 
-  return { rentAmount, rentAmountLoading, rentAmountError, fee, totalAmount };
+  // Helper function to get error message
+  const getErrorMessage = () => {
+    if (!rentAmountError) return null;
+    return typeof rentAmountError === 'string' 
+      ? rentAmountError 
+      : rentAmountError.message;
+  };
+
+  // Helper function to get error type
+  const getErrorType = () => {
+    if (!rentAmountError || typeof rentAmountError === 'string') return null;
+    return rentAmountError.errorType;
+  };
+
+  // Helper function to clear rent amount data
+  const clearRentAmountData = () => {
+    dispatch(clearRentAmount());
+  };
+
+  return { 
+    rentAmount, 
+    rentAmountLoading, 
+    rentAmountError, 
+    fee, 
+    totalAmount,
+    getErrorMessage,
+    getErrorType,
+    clearRentAmountData
+  };
 };
 
 export default useRentAmount; 
