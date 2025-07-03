@@ -5,7 +5,7 @@
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
     /* Completeness */
-     "types": ["node"],
+     "types": ["node", "jest"],
     "skipLibCheck": true, /* Skip type checking all .d.ts files. */
     "jsx": "react-native",
     "resolveJsonModule": true,
@@ -15,5 +15,5 @@
     },
   },
   "exclude": ["node_modules"],
-  "include": ["index.js", "app", "test", "types", "app/App.tsx"]
+  "include": ["index.js", "app", "test", "types", "app/App.tsx", "jest.setup.js", "__mocks__"]
 }

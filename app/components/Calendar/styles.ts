@@ -22,7 +22,7 @@ export const CALENDAR_RADIUS = {
 };
 
 export const CALENDAR_FONT = {
-  weightBold: 'bold',
+  weightBold: 'bold' as const,
   dayFontSize: 16,
   monthFontSize: 22,
   dayHeaderFontSize: 14,
@@ -35,5 +35,5 @@ export const styles = StyleSheet.create({
   calendarModal: { backgroundColor: CALENDAR_COLORS.background, borderTopLeftRadius: CALENDAR_RADIUS.modal, borderTopRightRadius: CALENDAR_RADIUS.modal, padding: 20, paddingBottom: 0 },
   modalHandle: { alignSelf: 'center', width: 60, height: 6, borderRadius: CALENDAR_RADIUS.handle, backgroundColor: CALENDAR_COLORS.todayBorder, marginBottom: 16 },
   selectButton: { backgroundColor: CALENDAR_COLORS.selectButton, borderRadius: CALENDAR_RADIUS.selectButton, paddingVertical: 16, alignItems: 'center', marginTop: 20, marginBottom: 10 },
-  selectButtonText: { color: CALENDAR_COLORS.selectButtonText, fontWeight: CALENDAR_FONT.weightBold, fontSize: 18 },
+  selectButtonText: { color: CALENDAR_COLORS.selectButtonText, fontWeight: CALENDAR_FONT.weightBold, fontSize: 18, fontFamily: 'Mont' },
 }); 

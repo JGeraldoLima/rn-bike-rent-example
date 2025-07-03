@@ -1,6 +1,6 @@
 import React from 'react';
 import '@testing-library/jest-native/extend-expect';
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { render, waitFor, fireEvent, screen } from '@testing-library/react-native';
 import { mockedBike } from '@app/mocks';
 import BikeCard from '../';
 
@@ -18,27 +18,30 @@ describe('BikeCard component', () => {
     expect(onPress).toHaveBeenCalled();
   });
 
-  it('should has an image', () => {
-    const bikeCardImage = screen.getByTestId('bike-card-image');
+  it('should have an image', async () => {
+    let bikeCardImage;
+    await waitFor(() => {
+      bikeCardImage = screen.getByTestId('bike-card-image');    
+    });
     expect(bikeCardImage).toBeVisible();
   });
 
-  it('should has a fav icon', () => {
+  it('should have a fav icon', () => {
     const bikeCardFavIcon = screen.getByTestId('bike-card-fav-icon');
     expect(bikeCardFavIcon).toBeVisible();
   });
 
-  it('should has the bike model', () => {
+  it('should have the bike model', () => {
     const bikeCardFavIcon = screen.getByTestId('bike-card-model');
     expect(bikeCardFavIcon).toBeVisible();
   });
 
-  it('should has the bike type', () => {
+  it('should have the bike type', () => {
     const bikeCardType = screen.getByTestId('bike-card-type');
     expect(bikeCardType).toBeVisible();
   });
 
-  it('should has the bike rate', () => {
+  it('should have the bike rate', () => {
     const bikeCardRate = screen.getByTestId('bike-card-rate');
     expect(bikeCardRate).toBeVisible();
   });

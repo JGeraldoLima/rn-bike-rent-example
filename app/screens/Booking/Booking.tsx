@@ -185,7 +185,7 @@ const Booking: React.FC = () => {
         transparent
         animationType="fade"
         onRequestClose={handleGoHome}>
-        <View style={styles.confirmationOverlay}>
+        <View style={styles.modalOverlay}>
           <View style={styles.confirmationModal}>
             <Text style={styles.confirmationTitle}>Thank you!</Text>
             <Text style={styles.confirmationSubtitle}>Your bike is booked.</Text>
