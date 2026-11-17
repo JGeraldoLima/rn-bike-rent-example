@@ -24,30 +24,30 @@ export const fetchAvailableBikes = () => {
     return api.get('/bikes/available/');
 };
 
-export const calculateRentAmount = (bikeId: string, userId: number, startDate: string, endDate: string) => {
-  bikeId = API_USER_ID; // just for this POC, since we don't have any users CRUD feature
-  console.log('rent amount for bike:', bikeId, 'from', startDate, 'to', endDate);
-  return api.post(`/bikes/amount/`, {
+export const calculateRentAmount = (bikeId: number, userId: number, dateFrom: string, dateTo: string) => {
+  userId = Number(API_USER_ID); // just for this POC, since we don't have any users CRUD feature
+  return api.post(`/bikes/amount`, {
     bikeId,
     userId,
-    startDate,
-    endDate
+    dateFrom,
+    dateTo
   });
 };
 
-export const bookBike = (bikeId: string, userId: number, startDate: string, endDate: string) => {
-  bikeId = API_USER_ID; // just for this POC, since we don't have any users CRUD feature
-  console.log('Renting bike:', bikeId, 'for user:', userId, 'from', startDate, 'to', endDate);
+export const bookBike = (bikeId: number, userId: number, dateFrom: string, dateTo: string) => {
+  userId = Number(API_USER_ID); // just for this POC, since we don't have any users CRUD feature
+  console.log('Renting bike:', bikeId, 'for user:', userId, 'from', dateFrom, 'to', dateTo);
   return api.post(`/bikes/rent`, {
     bikeId,
     userId,
-    startDate,
-    endDate
+    dateFrom,
+    dateTo
   });
 };
 
+//TODO: API return a 500 error
 //export const returnBike = (bikeId: string, userId: number) => {
-//  bikeId = API_USER_ID; // just for this POC, since we don't have any users CRUD feature
+//  userId = API_USER_ID; // just for this POC, since we don't have any users CRUD feature
 //  console.log('returning bike:', bikeId, 'for user:', userId);
 //  return api.post(`/bikes/return`, {
 //    bikeId,

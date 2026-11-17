@@ -1,12 +1,16 @@
 import React, { FC } from 'react';
-import { TouchableOpacity, Image } from 'react-native';
+import { TouchableOpacity, Image, ImageStyle } from 'react-native';
 import { MenuIcon } from '@app/assets';
 
 import styles from './styles';
 
-const NavBarLeftItem: FC = () => (
+interface NavBarLeftItemProps {
+  color?: string;
+}
+
+const NavBarLeftItem: FC<NavBarLeftItemProps> = ({ color = '#fff' }) => (
   <TouchableOpacity testID="nav-bar-left-item-button" style={styles.button}>
-    <Image source={MenuIcon} />
+    <Image source={MenuIcon} style={{ tintColor: color } as ImageStyle} />
   </TouchableOpacity>
 );
 

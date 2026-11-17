@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
   },
   bikeTypeText: {
     fontSize: 12,
+    fontFamily: 'Mont',
   },
   bikePriceContainer: {
     flexDirection: 'row',
